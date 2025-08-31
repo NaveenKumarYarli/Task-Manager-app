@@ -1,0 +1,101 @@
+import React, { useState, useEffect } from "react";
+
+function TaskManager() {
+  const [tasks, setTasks] = useState([]);
+  const [filter, setFilter] = useState("All");
+  const [title, setTitle] = useState("");
+  const [desc, setDesc] = useState("");
+
+  // Load tasks from localStorage
+  useEffect(() => {
+    const savedTasks = localStorage.getItem("tasks");
+    if (savedTasks) {
+      setTasks(JSON.parse(savedTasks));
+    }
+  }, []);
+
+  // Save tasks to localStorage whenever tasks change
+  useEffect(() => {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+  }, [tasks]);
+
+  // Add a new task
+  const addTask = () => {
+    if (!title.trim()) return; // prevent empty title
+    const newTask = {
+      id: Date.now(),
+      title,
+      desc,
+      completed: false,
+    };
+    setTasks([...tasks, newTask]);
+    setTitle("");
+    setDesc("");
+  };
+
+  // Toggle completed state
+  const toggleTask = (id) => {
+    setTasks(
+      tasks.map((task) =>
+        task.id === id ? { ...task, completed: !task.completed } : task
+      )
+    );
+  };
+
+  // Filter tasks
+  const filteredTasks = tasks.filter((task) => {
+    if (filter === "Completed") return task.completed;
+    if (filter === "Pending") return !task.completed;
+    return true; // All
+  });
+
+  return (
+    <div style={{ padding: "20px", maxWidth: "500px", margin: "auto" }}>
+      <h2>Task Manager</h2>
+
+      {/* Add Task Form */}
+      <input
+        type="text"
+        placeholder="Task Title"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        style={{ display: "block", marginBottom: "10px", width: "100%" }}
+      />
+      <textarea
+        placeholder="Task Description"
+        value={desc}
+        onChange={(e) => setDesc(e.target.value)}
+        style={{ display: "block", marginBottom: "10px", width: "100%" }}
+      />
+      <button onClick={addTask}>Add Task</button>
+
+      {/* Filter */}
+      <div style={{ margin: "15px 0" }}>
+        <button onClick={() => setFilter("All")}>All</button>
+        <button onClick={() => setFilter("Completed")}>Completed</button>
+        <button onClick={() => setFilter("Pending")}>Pending</button>
+      </div>
+
+      {/* Task List */}
+      <ul>
+        {filteredTasks.map((task) => (
+          <li
+            key={task.id}
+            style={{
+              marginBottom: "10px",
+              textDecoration: task.completed ? "line-through" : "none",
+            }}
+          >
+            <strong>{task.title}</strong>
+            <p>{task.desc}</p>
+            <button onClick={() => toggleTask(task.id)}>
+              {task.completed ? "Undo" : "Complete"}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export default TaskManager;
